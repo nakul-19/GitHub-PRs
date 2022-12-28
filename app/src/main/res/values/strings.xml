@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">GitHub PRs</string>
+    <string name="retry">Retry</string>
+    <string name="username">User: %s</string>
+    <string name="created_at">Created at: %s</string>
+    <string name="closed_at">Closed at: %s</string>
+    <string name="something_went_wrong_tap_to_retry">Something went wrong. Tap to retry.</string>
+</resources>
