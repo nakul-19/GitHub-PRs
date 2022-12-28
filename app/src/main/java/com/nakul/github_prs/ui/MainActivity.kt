@@ -1,12 +1,12 @@
 package com.nakul.github_prs.ui
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
+import android.os.Parcelable
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
-import com.nakul.github_prs.R
 import com.nakul.github_prs.databinding.ActivityMainBinding
+import com.nakul.github_prs.util.AppUtils
 import com.nakul.github_prs.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
     private var binding: ActivityMainBinding? = null
     private val viewModel by viewModels<MainViewModel>()
     private var snackbar: Snackbar? = null
+    var state: Parcelable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +24,18 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding?.root)
         initBinding()
         initObservers()
-        viewModel.getAndAddItems()
+        if (state != null)
+            viewModel.model.fetchData()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        state = binding?.recyclerView?.layoutManager?.onSaveInstanceState()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding?.recyclerView?.layoutManager?.onRestoreInstanceState(state)
     }
 
     private fun initBinding() {
@@ -32,7 +44,6 @@ class MainActivity : AppCompatActivity() {
             viewmodel = this@MainActivity.viewModel
         }
         binding?.swipeRefresh?.setOnRefreshListener {
-            binding?.swipeRefresh?.isRefreshing = false
             viewModel.resetData()
         }
     }
@@ -42,15 +53,12 @@ class MainActivity : AppCompatActivity() {
             snackbar?.dismiss()
             if (message != null) {
                 binding?.root?.let { view ->
-                    snackbar = getNewSnackbar(view, message)
+                    snackbar =
+                        AppUtils.getNewSnackbar(view, message) { viewModel.model.fetchData() }
                     snackbar?.show()
                 }
             }
         }
     }
-
-    private fun getNewSnackbar(view: View, message: String) =
-        Snackbar.make(this, view, message, Snackbar.LENGTH_INDEFINITE)
-            .setAction(getString(R.string.retry)) { viewModel.getAndAddItems() }
 
 }

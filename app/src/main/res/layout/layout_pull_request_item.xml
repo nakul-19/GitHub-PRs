@@ -7,7 +7,7 @@
             name="item"
             type="com.nakul.github_prs.model.PullRequestModel" />
 
-        <import type="com.nakul.github_prs.util.Utils" />
+        <import type="com.nakul.github_prs.util.DateTimeUtils" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="6dp"
-            android:text="@{@string/created_at(Utils.getFormattedDate(item.createdDate))}"
+            android:text='@{@string/created_at(DateTimeUtils.getFormattedDate(item.createdDate) ?? "-")}'
             android:textSize="12dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/userImage"
@@ -68,7 +68,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="6dp"
-            android:text="@{@string/closed_at(Utils.getFormattedDate(item.closedDate))}"
+            android:text='@{@string/closed_at(DateTimeUtils.getFormattedDate(item.closedDate) ?? "-")}'
             android:textSize="12dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/userImage"

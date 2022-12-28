@@ -2,16 +2,26 @@ package com.nakul.github_prs.ui
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.nakul.github_prs.BR
 import com.nakul.github_prs.databinding.LayoutPullRequestItemBinding
+import com.nakul.github_prs.databinding.LayoutLoaderBinding
+import com.nakul.github_prs.model.PaginationModel
 import com.nakul.github_prs.model.PullRequestModel
-import com.nakul.github_prs.viewmodel.PagingListener
 
-class PRAdapter(private val listener: PagingListener) : RecyclerView.Adapter<PRAdapter.VH>() {
+class PRAdapter(private val model: PaginationModel) :
+    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    val data = arrayListOf<PullRequestModel>()
+    inner class PullRequestVH(val binding: LayoutPullRequestItemBinding) :
+        RecyclerView.ViewHolder(binding.root)
+
+    inner class LoaderVH(val binding: LayoutLoaderBinding) : RecyclerView.ViewHolder(binding.root)
+
+    private var isLoading = false
+
+    private val data = arrayListOf<PullRequestModel>()
 
     @SuppressLint("NotifyDataSetChanged") fun setData(list: List<PullRequestModel?>) {
         data.clear()
@@ -19,26 +29,52 @@ class PRAdapter(private val listener: PagingListener) : RecyclerView.Adapter<PRA
         notifyDataSetChanged()
     }
 
-    fun addData(list: List<PullRequestModel?>) {
+    fun addData(list: List<PullRequestModel?>, load: Boolean = true) {
         val newList = list.filter { data.contains(it).not() }.filterNotNull()
         val oldSize = data.size
         data.addAll(newList)
-        notifyItemRangeChanged(oldSize, data.size)
+        isLoading = load
+        notifyItemRangeChanged(oldSize, data.size + 1)
     }
 
-    class VH(val binding: LayoutPullRequestItemBinding) : RecyclerView.ViewHolder(binding.root)
+    override fun getItemViewType(position: Int): Int {
+        return if (position < data.size)
+            PULL_REQUEST_VIEW_TYPE else LOADER_VIEW_TYPE
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-        VH(LayoutPullRequestItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        if (viewType == PULL_REQUEST_VIEW_TYPE) PullRequestVH(
+            LayoutPullRequestItemBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+        )
+        else LoaderVH(
+            LayoutLoaderBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+        )
 
-    override fun onBindViewHolder(holder: VH, position: Int) {
-        holder.binding.apply {
-            setVariable(BR.item, data[position])
-            executePendingBindings()
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder) {
+            is PullRequestVH -> holder.binding.apply {
+                setVariable(BR.item, data[position])
+                executePendingBindings()
+            }
+            is LoaderVH -> {
+                holder.binding.progress.visibility = if (isLoading) View.VISIBLE else View.GONE
+                model.fetchData()
+            }
         }
-        if (position == data.size - 1) listener.getAndAddItems()
     }
 
-    override fun getItemCount() = data.size
+    override fun getItemCount() = data.size + 1
 
+    companion object {
+        const val PULL_REQUEST_VIEW_TYPE = 1
+        const val LOADER_VIEW_TYPE = 2
+    }
 }

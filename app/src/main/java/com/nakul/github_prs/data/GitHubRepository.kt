@@ -12,7 +12,7 @@ class GitHubRepository @Inject constructor(private val api: GitHubApi) {
         emit(ResultModel.Loading)
         kotlin.runCatching {
             val response = api.getPullRequests(page)
-            if (response.isSuccessful && response.body() != null) {
+            if (response.isSuccessful) {
                 val list = response.body()?.mapNotNull { it?.toPullRequestModel() }
                 emit(ResultModel.Success(list))
             } else if (response.code() == Constants.LIMIT_EXCEEDED_ERROR_CODE) {
